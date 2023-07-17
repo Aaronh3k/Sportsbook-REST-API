@@ -18,59 +18,59 @@ depends_on = None
 
 def upgrade() -> None:
     # ENUM types
-    op.execute("CREATE TYPE event_type AS ENUM ('preplay', 'inplay');")
-    op.execute("CREATE TYPE event_status AS ENUM ('Pending', 'Started', 'Ended', 'Cancelled');")
-    op.execute("CREATE TYPE selection_outcome AS ENUM ('Unsettled', 'Void', 'Lose', 'Win');")
+    # op.execute("CREATE TYPE event_type AS ENUM ('preplay', 'inplay');")
+    # op.execute("CREATE TYPE event_status AS ENUM ('Pending', 'Started', 'Ended', 'Cancelled');")
+    # op.execute("CREATE TYPE selection_outcome AS ENUM ('Unsettled', 'Void', 'Lose', 'Win');")
     
     op.execute("""
     CREATE TABLE Sports (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255),
-        url_identifier VARCHAR(255),
-        active BOOLEAN,
+        name VARCHAR(255) UNIQUE,
+        url_identifier VARCHAR(255) UNIQUE,
+        active BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP
     )
     """)
 
-    op.execute("""
-    CREATE TABLE Events (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255),
-        url_identifier VARCHAR(255),
-        active BOOLEAN,
-        type event_type,
-        sport_id INT,
-        status event_status,
-        scheduled_start TIMESTAMP,
-        actual_start TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (sport_id) REFERENCES Sports(id)
-    )
-    """)
+    # op.execute("""
+    # CREATE TABLE Events (
+    #     id SERIAL PRIMARY KEY,
+    #     name VARCHAR(255),
+    #     url_identifier VARCHAR(255),
+    #     active BOOLEAN,
+    #     type event_type,
+    #     sport_id INT,
+    #     status event_status,
+    #     scheduled_start TIMESTAMP,
+    #     actual_start TIMESTAMP,
+    #     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    #     updated_at TIMESTAMP,
+    #     FOREIGN KEY (sport_id) REFERENCES Sports(id)
+    # )
+    # """)
 
-    op.execute("""
-    CREATE TABLE Selections (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255),
-        event_id INT,
-        price DECIMAL(10, 2),
-        active BOOLEAN,
-        outcome selection_outcome,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (event_id) REFERENCES Events(id)
-    )
-    """)
+    # op.execute("""
+    # CREATE TABLE Selections (
+    #     id SERIAL PRIMARY KEY,
+    #     name VARCHAR(255),
+    #     event_id INT,
+    #     price DECIMAL(10, 2),
+    #     active BOOLEAN,
+    #     outcome selection_outcome,
+    #     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    #     updated_at TIMESTAMP,
+    #     FOREIGN KEY (event_id) REFERENCES Events(id)
+    # )
+    # """)
 
 
 def downgrade() -> None:
-    op.execute("DROP TABLE Selections")
-    op.execute("DROP TABLE Events")
+    #op.execute("DROP TABLE Selections")
+    # op.execute("DROP TABLE Events")
     op.execute("DROP TABLE Sports")
     
     # Remove ENUM types
-    op.execute("DROP TYPE selection_outcome;")
-    op.execute("DROP TYPE event_status;")
-    op.execute("DROP TYPE event_type;")
+    # op.execute("DROP TYPE selection_outcome;")
+    # op.execute("DROP TYPE event_status;")
+    # op.execute("DROP TYPE event_type;")
