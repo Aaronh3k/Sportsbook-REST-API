@@ -78,7 +78,7 @@ class Sport(BaseMixin, db.Model):
             return {"error": str(e)}
 
     @staticmethod
-    def get_sports(sport_id=None, page=None, offset=None, orderby=None, sortby=None, active=None):
+    def get_sports(sport_id=None, page=None, offset=None, orderby=None, sortby=None, active=None, regex=None):
         """
         Get sports data by sport_id or get paginated list of sports
 
@@ -88,6 +88,7 @@ class Sport(BaseMixin, db.Model):
         :param orderby: [int] sort order (-1 for descending, 1 for ascending)
         :param sortby: [str] column to sort by
         :param active: [bool] active state of the sport
+        :param regex: [str] regex pattern to search for in 'name' and 'url_identifier'
 
         :return [dict/list]
         """
@@ -96,13 +97,22 @@ class Sport(BaseMixin, db.Model):
         orderby = orderby or "ASC"
         sortby = sortby or "name"
         active_query = ""
+        regex_query = ""
 
         if active is not None:
             active = bool(active)
-            active_query = f"WHERE active = {active}"
+            active_query = f"active = {active}"
+
+        if regex is not None:
+            regex_query = f"(name ~* '{regex}' OR url_identifier ~* '{regex}')"
+
+        if active_query and regex_query:
+            active_query = f"WHERE {active_query} AND {regex_query}"
+        elif active_query or regex_query:
+            active_query = f"WHERE {active_query} {regex_query}"
 
         app.logger.info('Sport retrieval request received')
-        app.logger.debug(f'Request parameters - sport_id: {sport_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}')
+        app.logger.debug(f'Request parameters - sport_id: {sport_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}, regex: {regex}')
 
         try:
             if not sport_id:

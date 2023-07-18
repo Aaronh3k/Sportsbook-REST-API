@@ -98,7 +98,7 @@ class Event(BaseMixin, db.Model):
             return {"error": str(e)}
     
     @staticmethod
-    def get_events(event_id=None, page=None, offset=None, orderby=None, sortby=None, active=None):
+    def get_events(event_id=None, page=None, offset=None, orderby=None, sortby=None, active=None, regex=None):
         """
         Get events data by event_id or get paginated list of events
 
@@ -116,13 +116,22 @@ class Event(BaseMixin, db.Model):
         orderby = orderby or "ASC"
         sortby = sortby or "name"
         active_query = ""
+        regex_query = ""
 
         if active is not None:
             active = bool(active)
-            active_query = f"WHERE active = {active}"
+            active_query = f"active = {active}"
+
+        if regex is not None:
+            regex_query = f"(name ~* '{regex}' OR url_identifier ~* '{regex}')"
+
+        if active_query and regex_query:
+            active_query = f"WHERE {active_query} AND {regex_query}"
+        elif active_query or regex_query:
+            active_query = f"WHERE {active_query} {regex_query}"
 
         app.logger.info('Event retrieval request received')
-        app.logger.debug(f'Request parameters - event_id: {event_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}')
+        app.logger.debug(f'Request parameters - event_id: {event_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}, regex: {regex}')
 
         try:
             if not event_id:

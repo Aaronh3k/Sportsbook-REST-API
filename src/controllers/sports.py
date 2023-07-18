@@ -51,6 +51,7 @@ def get_sports():
     sorting_column = None
     orderby = None
     active = None
+    regex = None
 
     if request.args.get("orderby") and request.args.get("sortby"):
         if request.args.get("orderby") == "1":
@@ -72,9 +73,12 @@ def get_sports():
     if request.args.get("active") is not None:
         active = True if request.args.get("active").lower() == 'true' else False
 
-    app.logger.debug(f'Orderby: {orderby}, Sorting column: {sorting_column}, Active: {active}')
+    if request.args.get("name_or_url_pattern") is not None:
+        regex = request.args.get("name_or_url_pattern")
 
-    sports = Sport.get_sports(None, request.args.get("page_number"), request.args.get("page_offset"), orderby, sorting_column, active)
+    app.logger.debug(f'Orderby: {orderby}, Sorting column: {sorting_column}, Active: {active}, Regex: {regex}')
+
+    sports = Sport.get_sports(None, request.args.get("page_number"), request.args.get("page_offset"), orderby, sorting_column, active, regex)
     
     if not sports:
         app.logger.info('No sports found')

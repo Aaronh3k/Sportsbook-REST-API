@@ -33,6 +33,13 @@ class Selection(BaseMixin, db.Model):
 
     @staticmethod
     def create_a_selection(data):
+        """
+        Create a new selection entry in the database.
+
+        :param data: [dict] dictionary containing the data of the new selection.
+
+        :return [dict]: Returns a dictionary containing a message of success or an error message.
+        """
         app.logger.info('Selection creation initiated')
 
         allowed_columns = list_diff(Selection().columns_list(), Selection()._restrict_in_creation_)
@@ -79,19 +86,41 @@ class Selection(BaseMixin, db.Model):
             return {"error": str(e)}
 
     @staticmethod
-    def get_selections(selection_id=None, page=None, offset=None, orderby=None, sortby=None, active=None):
+    def get_selections(selection_id=None, page=None, offset=None, orderby=None, sortby=None, active=None, regex=None):
+        """
+        Get selections data by selection_id or get paginated list of selections.
+
+        :param selection_id: [str] selections table primary key.
+        :param page: [int] page number, defaults to 1.
+        :param offset: [int] page offset - number of rows to return, defaults to 20.
+        :param orderby: [str] sort order ("ASC" for ascending, "DESC" for descending), defaults to "ASC".
+        :param sortby: [str] column to sort by, defaults to "name".
+        :param active: [bool] active state of the selection, optional.
+        :param regex: [str] regex pattern to search for in 'name', optional.
+
+        :return [dict/list]: Returns either a list of dictionaries representing each selection, or a single dictionary if a selection_id was given.
+        """
         page = page or 1
         offset = offset or 20
         orderby = orderby or "ASC"
         sortby = sortby or "name"
         active_query = ""
+        regex_query = ""
 
         if active is not None:
             active = bool(active)
-            active_query = f"WHERE active = {active}"
+            active_query = f"active = {active}"
+
+        if regex is not None:
+            regex_query = f"(name ~* '{regex}')"
+
+        if active_query and regex_query:
+            active_query = f"WHERE {active_query} AND {regex_query}"
+        elif active_query or regex_query:
+            active_query = f"WHERE {active_query} {regex_query}"
 
         app.logger.info('Selection retrieval request received')
-        app.logger.debug(f'Request parameters - selection_id: {selection_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}')
+        app.logger.debug(f'Request parameters - selection_id: {selection_id}, page: {page}, offset: {offset}, orderby: {orderby}, sortby: {sortby}, active: {active}, regex: {regex}')
 
         try:
             if not selection_id:
@@ -149,6 +178,14 @@ class Selection(BaseMixin, db.Model):
 
     @staticmethod
     def update_a_selection(selection_id, data):
+        """
+        Update an existing selection entry in the database.
+
+        :param selection_id: [str] the id of the selection to update.
+        :param data: [dict] dictionary containing the updated data of the selection.
+
+        :return [dict]: Returns a dictionary containing a message of success or an error message.
+        """
         app.logger.info(f'Update selection request received for selection id: {selection_id}')
         app.logger.debug(f'Request data: {data}')
         
@@ -198,6 +235,13 @@ class Selection(BaseMixin, db.Model):
 
     @staticmethod
     def delete_selection_permanently(selection_id):
+        """
+        Permanently delete a selection from the database.
+
+        :param selection_id: [str] the id of the selection to delete.
+
+        :return [dict]: Returns a dictionary containing a message of success or an error message.
+        """
         app.logger.info(f'Delete selection request received for selection id: {selection_id}')
 
         try:
