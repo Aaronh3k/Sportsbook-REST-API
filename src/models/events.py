@@ -63,6 +63,7 @@ class Event(BaseMixin, db.Model):
         app.logger.debug(f'Event data to be inserted: {insert_data}')
         
         result = Event().validate_and_sanitize(insert_data, Event()._restrict_in_creation_)
+        print(result)
         if result.get("errors"):
             app.logger.error('Event data validation and sanitization failed')
             app.logger.debug(f'Validation errors: {result["errors"]}')

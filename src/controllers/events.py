@@ -2,6 +2,9 @@ from flask import request
 from src.models.events import Event
 from src.helpers import *
 from src.app import app
+import requests
+from src.models.sports import Sport
+from datetime import datetime
 
 @app.route(BASE_PATH + "/events", methods=["POST"])
 def create_an_event():
@@ -124,3 +127,69 @@ def delete_event_permanently(id):
         return errorit(result, "EVENT_DELETION_FAILED", 400)
 
     return responsify(result, {}, 200)
+
+@app.route(BASE_PATH + "/events/upload_external/sports/<sport_id>", methods=["POST"])
+def fetch_and_store_events(sport_id):
+    """
+    Fetches events data from external API for a specific sport and stores it in database
+    """
+    app.logger.info('Fetch and store events data request received for sport id: %s', sport_id)
+
+    data = request.get_json()
+    no_of_events = data.get("no_of_events", 1)
+    
+    if no_of_events <= 0 or no_of_events > 3:
+        return errorit("No of events to be added must be a positive integer and cannot exceed 3", "INVALID_REQUEST", 400)
+
+    # Fetch sport details using provided sport_id
+    sport = Sport.get_sports(sport_id=sport_id)
+    if not sport:
+        app.logger.error('No sport found with the provided id')
+        return errorit("No sport found with the provided id", "INVALID_SPORT_ID", 400)
+
+    # Extract the url_identifier from sport details
+    sport_key = sport["url_identifier"]
+
+    response = requests.get(f'{EX_API}sports/{sport_key}/odds?apiKey={EX_API_KEY}&regions=uk,us,eu')
+
+    if response.status_code == 200:
+        events = response.json()
+
+        if no_of_events > len(events):
+            return errorit(f"Requested {no_of_events} events, but only {len(events)} available", "TOO_MANY_EVENTS_REQUESTED", 400)
+
+        count_added = 0
+        for event in events:
+            if count_added >= no_of_events:
+                break
+
+            event_data = {
+                "name": event["home_team"] + ' vs ' + event["away_team"],
+                "url_identifier": event["id"],
+                "type": 'preplay',
+                "sport_id": sport_id,
+                "status": 'Pending',
+                "scheduled_start": datetime.strptime(event["commence_time"], "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d %H:%M:%S"),
+            }
+
+            # Check if event already exists
+            existing_event = Event.get_events(regex=event_data["url_identifier"])
+            if existing_event["events"]:
+                app.logger.debug('Event already exists, skipping to next')
+                continue
+
+            app.logger.debug(f'Event data: {event_data}')
+            result = Event.create_an_event(event_data)
+
+            if result.get("error"):
+                app.logger.error('Event creation failed')
+                app.logger.debug(f'Error details: {result}')
+                return errorit(result, "EVENT_CREATION_FAILED", 400)
+            else:
+                count_added += 1
+
+        app.logger.info('Events data successfully fetched and stored')
+        return responsify({"message": "Events data successfully fetched and stored"}, {}, 201)
+    else:
+        app.logger.error('Failed to fetch events data from external API')
+        return errorit("Failed to fetch events data from external API", "EXTERNAL_API_ERROR", 500)

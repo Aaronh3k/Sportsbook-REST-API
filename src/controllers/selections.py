@@ -2,6 +2,9 @@ from flask import request
 from src.models.selections import Selection
 from src.helpers import *
 from src.app import app
+from src.models.events import Event
+from src.models.sports import Sport
+import requests
 
 @app.route(BASE_PATH + "/selections", methods=["POST"])
 def create_a_selection():
@@ -124,3 +127,67 @@ def delete_selection_permanently(id):
         return errorit(result, "SELECTION_DELETION_FAILED", 400)
 
     return responsify(result, {}, 200)
+
+@app.route(BASE_PATH + "/selections/upload_external/sports/<sport_id>/events/<event_id>", methods=["POST"])
+def fetch_and_store_selections(sport_id, event_id):
+    """
+    Fetches selections data from external API for a specific event and stores it in database
+    """
+    app.logger.info('Fetch and store selections data request received for sport id: %s, event id: %s', sport_id, event_id)
+
+    data = request.get_json()
+    no_of_selections = data.get("no_of_selections", 2)
+    
+    if no_of_selections <= 0 or no_of_selections > 2:
+        return errorit("No of selections to be added must be a positive integer or less then 3", "INVALID_REQUEST", 400)
+
+    sport = Sport.get_sports(sport_id=sport_id)
+    event = Event.get_events(event_id=event_id)
+    if not (sport and event):
+        app.logger.error('No sport/event found with the provided id')
+        return errorit("No sport/event found with the provided id", "INVALID_SPORT_OR_EVENT_ID", 400)
+
+    sport_key = sport["url_identifier"]
+    event_key = event["url_identifier"]
+
+    response = requests.get(f'{EX_API}sports/{sport_key}/events/{event_key}/odds?apiKey={EX_API_KEY}&regions=uk,us,eu')
+
+    if response.status_code == 200:
+        selection = response.json()
+
+        count_added = 0
+        for bookmaker in selection["bookmakers"]:
+            for market in bookmaker["markets"]:
+                for outcome in market["outcomes"]:
+                    if count_added >= no_of_selections:
+                        break
+
+                    selection_data = {
+                        "name": outcome["name"],
+                        "event_id": event_id,
+                        "price": outcome["price"],
+                        "active": True,
+                        "outcome": 'Unsettled'
+                    }
+
+                    # Check if selection already exists
+                    existing_selection = Selection.get_selections(regex=selection_data["name"])
+                    if existing_selection["selections"]:
+                        app.logger.debug('Selection already exists, skipping to next')
+                        continue
+
+                    app.logger.debug(f'Selection data: {selection_data}')
+                    result = Selection.create_a_selection(selection_data)
+
+                    if result.get("error"):
+                        app.logger.error('Selection creation failed')
+                        app.logger.debug(f'Error details: {result}')
+                        return errorit(result, "SELECTION_CREATION_FAILED", 400)
+                    else:
+                        count_added += 1
+
+        app.logger.info('Selections data successfully fetched and stored')
+        return responsify({"message": "Selections data successfully fetched and stored"}, {}, 201)
+    else:
+        app.logger.error('Failed to fetch selections data from external API')
+        return errorit("Failed to fetch selections data from external API", "EXTERNAL_API_ERROR", 500)

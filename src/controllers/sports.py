@@ -2,6 +2,7 @@ from flask import request
 from src.models.sports import Sport
 from src.helpers import *
 from src.app import app
+import requests
 
 @app.route(BASE_PATH + "/sports", methods=["POST"])
 def create_a_sport():
@@ -124,3 +125,57 @@ def delete_sport_permanently(id):
         return errorit(result, "SPORT_DELETION_FAILED", 400)
 
     return responsify(result, {}, 200)
+
+import requests
+
+@app.route(BASE_PATH + "/sports/upload_external", methods=["POST"])
+def fetch_and_store_sports():
+    """
+    Fetches sports data from external API and stores it in database
+    """
+    app.logger.info('Fetch and store sports data request received')
+
+    data = request.get_json()
+    no_of_sports = data.get("no_of_sports", 1)
+    
+    if no_of_sports <= 0:
+        return errorit("No of sports to be added must be a positive integer", "INVALID_REQUEST", 400)
+
+    response = requests.get(f'{EX_API}sports?apiKey={EX_API_KEY}')
+
+    if response.status_code == 200:
+        sports = response.json()
+        if no_of_sports > len(sports):
+            return errorit(f"Requested {no_of_sports} sports, but only {len(sports)} available", "TOO_MANY_SPORTS_REQUESTED", 400)
+
+        count_added = 0
+        for sport in sports:
+            if count_added >= no_of_sports:
+                break
+
+            data = {
+                "name": sport["group"],
+                "url_identifier": sport["key"],
+            }
+            app.logger.debug(f'Sport data: {data}')
+
+            # Check if sport already exists
+            existing_sport = Sport.get_sports(regex=data["name"])
+            if existing_sport and existing_sport.get("sports"):
+                app.logger.debug('Sport already exists, skipping to next')
+                continue
+
+            result = Sport.create_a_sport(data)
+
+            if result.get("error"):
+                app.logger.error('Sport creation failed')
+                app.logger.debug(f'Error details: {result}')
+                return errorit(result, "SPORT_CREATION_FAILED", 400)
+            else:
+                count_added += 1
+
+        app.logger.info('Sports data successfully fetched and stored')
+        return responsify({"message":"Sports data successfully fetched and stored"}, {}, 201)
+    else:
+        app.logger.error('Failed to fetch sports data from external API')
+        return errorit("Failed to fetch sports data from external API", "EXTERNAL_API_ERROR", 500)
