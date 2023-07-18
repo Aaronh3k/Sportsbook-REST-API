@@ -18,8 +18,8 @@ depends_on = None
 
 def upgrade() -> None:
     # ENUM types
-    # op.execute("CREATE TYPE event_type AS ENUM ('preplay', 'inplay');")
-    # op.execute("CREATE TYPE event_status AS ENUM ('Pending', 'Started', 'Ended', 'Cancelled');")
+    op.execute("CREATE TYPE event_type AS ENUM ('preplay', 'inplay');")
+    op.execute("CREATE TYPE event_status AS ENUM ('Pending', 'Started', 'Ended', 'Cancelled');")
     # op.execute("CREATE TYPE selection_outcome AS ENUM ('Unsettled', 'Void', 'Lose', 'Win');")
     
     op.execute("""
@@ -33,22 +33,25 @@ def upgrade() -> None:
     )
     """)
 
-    # op.execute("""
-    # CREATE TABLE Events (
-    #     id SERIAL PRIMARY KEY,
-    #     name VARCHAR(255),
-    #     url_identifier VARCHAR(255),
-    #     active BOOLEAN,
-    #     type event_type,
-    #     sport_id INT,
-    #     status event_status,
-    #     scheduled_start TIMESTAMP,
-    #     actual_start TIMESTAMP,
-    #     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    #     updated_at TIMESTAMP,
-    #     FOREIGN KEY (sport_id) REFERENCES Sports(id)
-    # )
-    # """)
+    op.execute("""
+    CREATE TABLE Events (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        url_identifier VARCHAR(255) NOT NULL UNIQUE,
+        active BOOLEAN NOT NULL CHECK (active IN (TRUE, FALSE)),
+        type event_type NOT NULL CHECK (type IN ('preplay', 'inplay')),
+        sport_id INT NOT NULL,
+        status event_status NOT NULL CHECK (status IN ('Pending', 'Started', 'Ended', 'Cancelled')),
+        scheduled_start TIMESTAMP NOT NULL,
+        actual_start TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP,
+        FOREIGN KEY (sport_id) REFERENCES Sports(id),
+        UNIQUE (name, sport_id),
+        CHECK (actual_start >= scheduled_start OR actual_start IS NULL)
+    );
+
+    """)
 
     # op.execute("""
     # CREATE TABLE Selections (
@@ -72,5 +75,5 @@ def downgrade() -> None:
     
     # Remove ENUM types
     # op.execute("DROP TYPE selection_outcome;")
-    # op.execute("DROP TYPE event_status;")
-    # op.execute("DROP TYPE event_type;")
+    op.execute("DROP TYPE event_status;")
+    op.execute("DROP TYPE event_type;")
