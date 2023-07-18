@@ -20,7 +20,7 @@ def upgrade() -> None:
     # ENUM types
     op.execute("CREATE TYPE event_type AS ENUM ('preplay', 'inplay');")
     op.execute("CREATE TYPE event_status AS ENUM ('Pending', 'Started', 'Ended', 'Cancelled');")
-    # op.execute("CREATE TYPE selection_outcome AS ENUM ('Unsettled', 'Void', 'Lose', 'Win');")
+    op.execute("CREATE TYPE selection_outcome AS ENUM ('Unsettled', 'Void', 'Lose', 'Win');")
     
     op.execute("""
     CREATE TABLE Sports (
@@ -53,27 +53,28 @@ def upgrade() -> None:
 
     """)
 
-    # op.execute("""
-    # CREATE TABLE Selections (
-    #     id SERIAL PRIMARY KEY,
-    #     name VARCHAR(255),
-    #     event_id INT,
-    #     price DECIMAL(10, 2),
-    #     active BOOLEAN,
-    #     outcome selection_outcome,
-    #     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    #     updated_at TIMESTAMP,
-    #     FOREIGN KEY (event_id) REFERENCES Events(id)
-    # )
-    # """)
+    op.execute("""
+    CREATE TABLE Selections (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        event_id INT NOT NULL,
+        price DECIMAL(10, 2),
+        active BOOLEAN NOT NULL CHECK (active IN (TRUE, FALSE)),
+        outcome selection_outcome,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES Events(id),
+        UNIQUE (name, event_id)
+    );
+    """)
 
 
 def downgrade() -> None:
-    #op.execute("DROP TABLE Selections")
-    # op.execute("DROP TABLE Events")
+    op.execute("DROP TABLE Selections")
+    op.execute("DROP TABLE Events")
     op.execute("DROP TABLE Sports")
     
     # Remove ENUM types
-    # op.execute("DROP TYPE selection_outcome;")
+    op.execute("DROP TYPE selection_outcome;")
     op.execute("DROP TYPE event_status;")
     op.execute("DROP TYPE event_type;")

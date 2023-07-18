@@ -24,7 +24,7 @@ class BaseMixin(object):
       else:
         return {"errors": result["errors"]}
     except Exception as e:
-      return {"errors": ["Data validation failed"]}
+      return {"errors": [f"Data validation failed:{e}"]}
 
 
 #   def to_dict(self, ts_to_string = True, dt_to_string= True, remove_null=True, hide_fields=[]):
