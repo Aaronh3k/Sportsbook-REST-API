@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from src.helpers import *
 import logging
+from flask_swagger_ui import get_swaggerui_blueprint
 
 app = Flask("sports_book_rest_api")
 
@@ -21,6 +22,21 @@ stream_handler.setFormatter(formatter)
 # Adding the handler to app's logger
 app.logger.addHandler(stream_handler)
 app.logger.setLevel(logging.INFO)
+
+# Swagger UI setup
+SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
+API_URL = '/static/swagger.yml'  # Path to YAML file
+
+# Call factory function to create our blueprint
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,  # Swagger UI static files will be served at '{SWAGGER_URL}/dist/'
+    API_URL,
+    config={  # Swagger UI config overrides
+        'app_name': "Sports Book REST Service API"
+    },
+)
+
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 db = SQLAlchemy(app)
 

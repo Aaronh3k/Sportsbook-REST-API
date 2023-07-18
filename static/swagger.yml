@@ -1,0 +1,798 @@
+openapi: 3.0.1
+info:
+  title: Sports Book REST API
+  description: REST API documentation for Sports Book Service.
+  version: 0.0.1
+servers:
+  - url: /
+paths:
+  /sports:
+    post:
+      tags:
+        - Sports
+      summary: Create a new sport
+      operationId: createSport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSport"
+        required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Sports
+      summary: Get many sports' information
+      parameters:
+        - in: query
+          name: orderby
+          schema:
+            type: string
+            enum: ["1", "-1"]
+          description: Order by direction. 1 for ascending or -1 for descending
+        - in: query
+          name: sortby
+          schema:
+            type: string
+            enum: ["name", "createdAt"]
+          description: Column to sort by
+        - in: query
+          name: active
+          schema:
+            type: boolean
+          description: Active state of the sport
+        - in: query
+          name: name_or_url_pattern
+          schema:
+            type: string
+          description: Regex pattern to search for in 'name' and 'url_identifier'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sport"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Sport not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSport"
+  /sports/{sport_id}:
+    get:
+      tags:
+        - Sports
+      summary: Get a sport's information
+      parameters:
+        - in: path
+          name: sport_id
+          schema:
+            type: string
+          required: true
+          description: Sports table primary key
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sport"
+        404:
+          description: Sport not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSport"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags:
+        - Sports
+      summary: Update a sport's information
+      parameters:
+        - in: path
+          name: sport_id
+          schema:
+            type: string
+          required: true
+          description: Sports table primary key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSport"
+        required: true
+      responses:
+        200:
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sport"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Sport not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSport"
+    delete:
+      tags:
+        - Sports
+      summary: Delete a sport permanently
+      parameters:
+        - in: path
+          name: sport_id
+          schema:
+            type: string
+          required: true
+          description: Sports table primary key
+      responses:
+        200:
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Sport not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSport"
+  /sports/upload_external:
+    post:
+      tags:
+        - Sports
+      summary: Fetch and store sports data from external source
+      operationId: fetchAndStoreSports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                no_of_sports:
+                  type: integer
+                  description: Number of sports to fetch and store
+              required: false
+      responses:
+        201:
+          description: Data successfully fetched and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sports data successfully fetched and stored"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: External API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /events:
+    post:
+      tags:
+        - Events
+      summary: Create a new event
+      description: Create a new event based on the provided data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Events
+      summary: Get many events' information
+      description: Fetches information about multiple events, with support for sorting, filtering, and pagination.
+      parameters:
+        - name: orderby
+          in: query
+          description: Order of the returned events (1 for ascending, -1 for descending)
+          schema:
+            type: integer
+            enum: [1, -1]
+        - name: sortby
+          in: query
+          description: Attribute to sort the events by ("name" or "createdAt")
+          schema:
+            type: string
+            enum: ["name", "createdAt"]
+        - name: active
+          in: query
+          description: If present, filters events by their active status
+          schema:
+            type: boolean
+        - name: name_or_url_pattern
+          in: query
+          description: If present, filters events by a pattern in their name or URL
+          schema:
+            type: string
+        - name: page_number
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+        - name: page_offset
+          in: query
+          description: Number of results per page for pagination
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Sport not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorEvent"
+
+  /events/{event_id}:
+    get:
+      tags:
+        - Events
+      summary: Get an event's information
+      description: Fetches information about a single event.
+      parameters:
+        - name: event_id
+          in: path
+          description: ID of the event to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        404:
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorEvent"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags:
+        - Events
+      summary: Update event information
+      description: Updates the specified event with the provided data.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the event to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        200:
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorEvent"
+    delete:
+      tags:
+        - Events
+      summary: Delete an event permanently
+      description: Deletes the specified event permanently.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the event to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorEvent"
+  /events/upload_external/sports/{sport_id}:
+    post:
+      tags:
+        - Events
+      summary: Fetches events data from external API for a specific sport and stores it in database
+      description: Fetches a specified number of events from an external API and stores them in the database.
+      parameters:
+        - name: sport_id
+          in: path
+          description: ID of the sport to fetch events for
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                no_of_events:
+                  type: integer
+                  description: Number of events to fetch and store (1 to 3)
+      responses:
+        201:
+          description: Data successfully fetched and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Events data successfully fetched and stored"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: External API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /selections:
+    post:
+      tags:
+        - Selections
+      summary: Create a new selection
+      operationId: create_a_selection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSelection"
+        required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelectionId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Selections
+      summary: Get many selections' information
+      parameters:
+        - in: query
+          name: orderby
+          schema:
+            type: string
+            enum: ["1", "-1"]
+          description: Order by direction. 1 for ascending or -1 for descending
+        - in: query
+          name: sortby
+          schema:
+            type: string
+            enum: ["name", "createdAt"]
+          description: Column to sort by
+        - in: query
+          name: active
+          schema:
+            type: boolean
+          description: Active state of the selection
+        - in: query
+          name: name_pattern
+          schema:
+            type: string
+          description: Regex pattern to search for in 'name'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Selection"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Selection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSelection"
+  /selections/{selection_id}:
+    get:
+      tags:
+        - Selections
+      summary: Get a selection's information
+      parameters:
+        - in: path
+          name: selection_id
+          schema:
+            type: string
+          required: true
+          description: Selections table primary key
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Selection"
+        404:
+          description: Selection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSelection"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags:
+        - Selections
+      summary: Update a selection's information
+      parameters:
+        - in: path
+          name: selection_id
+          schema:
+            type: string
+          required: true
+          description: Selections table primary key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSelection"
+        required: true
+      responses:
+        200:
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Selection"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Selection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSelection"
+    delete:
+      tags:
+        - Selections
+      summary: Delete a selection permanently
+      parameters:
+        - in: path
+          name: selection_id
+          schema:
+            type: string
+          required: true
+          description: Selections table primary key
+      responses:
+        200:
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelectionId"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Selection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorSelection"
+  /selections/upload_external/sports/{sport_id}/events/{event_id}:
+    post:
+      tags:
+        - Selections
+      summary: Fetches selections data from external API for a specific event and stores it in database
+      description: Fetches a specified number of selections from an external API and stores them in the database.
+      parameters:
+        - name: sport_id
+          in: path
+          description: ID of the sport to fetch selections for
+          required: true
+          schema:
+            type: string
+        - name: event_id
+          in: path
+          description: ID of the event to fetch selections for
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                no_of_selections:
+                  type: integer
+                  description: Number of selections to fetch and store (1 to 2)
+      responses:
+        201:
+          description: Data successfully fetched and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Selections data successfully fetched and stored"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: External API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    CreateSport:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        url_identifier:
+          type: string
+          minLength: 1
+          maxLength: 255
+    Sport:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url_identifier:
+          type: string
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SportId:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Sport successfully created"
+    NotFoundErrorSport:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No such sport found"
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+        code:
+          type: string
+        service:
+          type: string
+
+    Event:
+      type: object
+      properties:
+        name:
+          type: string
+        url_identifier:
+          type: string
+        type:
+          type: string
+        sport_id:
+          type: string
+        status:
+          type: string
+        scheduled_start:
+          type: string
+          format: date-time
+    EventId:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Event successfully created"
+    NotFoundErrorEvent:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No such event found"
+
+    CreateSelection:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        sport_id:
+          type: string
+        event_id:
+          type: string
+    Selection:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sport_id:
+          type: string
+        event_id:
+          type: string
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SelectionId:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Selection successfully created"
+    NotFoundErrorSelection:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No such selection found"
