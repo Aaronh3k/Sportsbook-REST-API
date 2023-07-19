@@ -140,4 +140,4 @@ Access the Swagger documentation [here](http://sports-book.us-east-1.elasticbean
 
 Interact with the API directly using the base URL provided below. Remember to include the `/v1/` suffix to ensure the use of version 1 of the API:
 
-[here](http://sports-book.us-east-1.elasticbeanstalk.com/v1/)
+[here](http://sports-book.us-east-1.elasticbeanstalk.com/v1)
