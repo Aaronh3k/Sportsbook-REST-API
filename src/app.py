@@ -24,7 +24,7 @@ app.logger.addHandler(stream_handler)
 app.logger.setLevel(logging.INFO)
 
 # Swagger UI setup
-SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
+SWAGGER_URL = '/v1/api/docs'  # URL for exposing Swagger UI (without trailing '/')
 API_URL = '/static/swagger.yml'  # Path to YAML file
 
 # Call factory function to create our blueprint
@@ -43,7 +43,7 @@ db = SQLAlchemy(app)
 # wires up controller routes
 import src.controllers
 
-@app.route("/", methods=["GET", "OPTIONS"])
+@app.route("/v1", methods=["GET", "OPTIONS"])
 def root_uri():
     app.logger.info('Root URI accessed')
     return responsify({"message": "Hello World. Welcome to Sports Book REST API Service.", "version": "0.0.1"})

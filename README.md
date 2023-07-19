@@ -63,14 +63,19 @@ git clone https://github.com/Aaronh3k/Sportsbook-REST-API.git
 ```
 
 **Step 2**: Navigate to the project directory:
+
 ```bash
 cd Sportsbook-REST-API
 ```
+
 **Step 3**: Install the required Python dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
+
 **Step 4**: Run the application:
+
 ```bash
 ./run.py
 ```
@@ -121,20 +126,18 @@ This CI/CD workflow allows for reliable, efficient, and secure software delivery
 
 ## Postman Collection
 
-To make it easier to test the API endpoints, a Postman collection is provided. Postman is an API testing tool that allows you to send different HTTP requests to the API. You can use the collection to send requests to our API and observe the responses. 
+To make it easier to test the API endpoints, a Postman collection is provided. Postman is an API testing tool that allows you to send different HTTP requests to the API. You can use the collection to send requests to our API and observe the responses.
 
-Access the Postman collection [here](https://documenter.getpostman.com/view/5044011/2s946ibWsB). 
+Access the Postman collection [here](https://documenter.getpostman.com/view/5044011/2s946ibWsB).
 
 ## Swagger Documentation
 
-The API also comes with a comprehensive Swagger documentation that provides details about all the available endpoints, their expected parameters and responses, and possible status codes and their meanings. This documentation can be of great help when trying to understand what functionality is available and how to use it. 
+The API also comes with a comprehensive Swagger documentation that provides details about all the available endpoints, their expected parameters and responses, and possible status codes and their meanings. This documentation can be of great help when trying to understand what functionality is available and how to use it.
 
-Access the Swagger documentation [here](http://sports-book.us-east-1.elasticbeanstalk.com/api/docs/).
+Access the Swagger documentation [here](http://sports-book.us-east-1.elasticbeanstalk.com/v1/api/docs/).
 
 # Access the API
 
 Interact with the API directly using the base URL provided below. Remember to include the `/v1/` suffix to ensure the use of version 1 of the API:
 
 [here](http://sports-book.us-east-1.elasticbeanstalk.com/v1/)
-
-
