@@ -94,6 +94,8 @@ This API stands as a comprehensive tool designed for effective management and in
 
 ## Database Schema
 
+![Screenshot from 2023-07-19 10-04-54](https://github.com/Aaronh3k/Sportsbook-REST-API/assets/24919671/cafb4ce5-50a9-4c27-b3ba-60d22fb93b0e)
+
 # Deployment Process
 
 This API leverages the robust capabilities of AWS to ensure scalable, efficient, and reliable deployment. Two Amazon Web Services' tools are utilized to create a smooth-running system:
@@ -102,7 +104,9 @@ This API leverages the robust capabilities of AWS to ensure scalable, efficient,
 
 - **Amazon RDS (PostgreSQL):** Serving as the backbone for the API's database, Amazon RDS with PostgreSQL engine is used. This offers a secure and scalable database environment that's easy to set up, operate, and scale.
 
-To understand the deployment process and the interplay of these services better, an architectural diagram is included in the repository. It offers a comprehensive visual representation of how these services work in synergy to provide a reliable and efficient API.
+To understand the deployment process and the interplay of these services better, an architectural diagram is included below. It offers a comprehensive visual representation of how these services work in synergy to provide a reliable and efficient API.
+
+![Untitled Diagram drawio](https://github.com/Aaronh3k/Sportsbook-REST-API/assets/24919671/2e534206-fa2c-47cc-9d37-154e71bb236a)
 
 # Continuous Integration/Continuous Deployment (CI/CD)
 
