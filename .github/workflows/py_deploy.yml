@@ -26,8 +26,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: Book-Service-Rest-API
-          environment_name: Book-Service-Rest-API-env
+          application_name: Sports-Book-REST-API-Service
+          environment_name: Sports-Book-REST-API-Service-env
           version_label: ${{ github.run_id }}
           region: us-east-1
           deployment_package: deployment_package.zip
