@@ -120,7 +120,7 @@ The pipeline is designed to run on an `ubuntu-latest` environment and performs a
 
 3. **Dependency Installation:** All required dependencies are installed with pip.
 
-4. **Deployment Package Creation:** Upon successful execution of the tests, a deployment package is created excluding any `.git`, `__pycache__`, and `tests` files/directories.
+4. **Deployment Package Creation:** Upon successful execution of the tests, a deployment package is created excluding any `.git`, `__pycache__` files/directories.
 
 5. **Deployment to Elastic Beanstalk:** The deployment package is then deployed to AWS Elastic Beanstalk using `einaregilsson/beanstalk-deploy@v14`. This action is performed with the AWS access key and secret key stored as GitHub Secrets to ensure secure access.
 
