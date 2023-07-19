@@ -118,6 +118,5 @@ def execute_sql_query(db, sql_query, params=None, operation="select", fetchone=F
             raise ValueError(f"Unsupported SQL operation: {operation}")
 
     except Exception as e:
-        print(e)
         return None
 

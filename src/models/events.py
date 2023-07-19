@@ -63,7 +63,6 @@ class Event(BaseMixin, db.Model):
         app.logger.debug(f'Event data to be inserted: {insert_data}')
         
         result = Event().validate_and_sanitize(insert_data, Event()._restrict_in_creation_)
-        print(result)
         if result.get("errors"):
             app.logger.error('Event data validation and sanitization failed')
             app.logger.debug(f'Validation errors: {result["errors"]}')
@@ -87,7 +86,6 @@ class Event(BaseMixin, db.Model):
             return {"message": "Event successfully created"}
         except exc.IntegrityError as e:
             db.session.rollback()
-            print(e)
             err = e.orig.diag.message_detail.rsplit(',', 1)[-1]
             app.logger.error('SQL integrity error encountered')
             app.logger.debug(f'Error details: {err.replace(")", "")}')
