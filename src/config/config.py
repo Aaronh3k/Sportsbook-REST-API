@@ -18,8 +18,8 @@ DB_URI = "postgresql://{}:{}@{}:{}/{}".format(RDS_USERNAME, RDS_PASSWORD, RDS_HO
 SQLALCHEMY_POOL_RECYCLE = int(os.getenv("SQLALCHEMY_POOL_RECYCLE", 3600))
 SQLALCHEMY_DATABASE_URI = DB_URI
 
-EX_API_KEY = os.getenv("External_API_KEY") or "fe7af1386b246237d1205128c41fb910"
-EX_API = os.getenv("EX_API") or "https://api.the-odds-api.com/v4/"
+EX_API_KEY = os.getenv("External_API_KEY") or ""
+EX_API = os.getenv("EX_API") or ""
 
 # API URI Prefix
 BASE_PATH = "/v1"
