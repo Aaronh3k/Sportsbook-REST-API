@@ -4,7 +4,7 @@ info:
   description: REST API documentation for Sports Book Service.
   version: 0.0.1
 servers:
-  - url: /
+  - url: /v1/
 paths:
   /sports:
     post:
